@@ -14,12 +14,18 @@ class CategoryScreen extends StatefulWidget {
 
 class _CategoryScreenState extends State<CategoryScreen> {
   CateBloc cateBloc;
+  PageController controller;
 
   @override
   void initState() {
     super.initState();
     cateBloc = BlocProvider.of<CateBloc>(context);
     cateBloc.getCate();
+    controller = new PageController(
+      initialPage: 0,
+      keepPage: false,
+      viewportFraction: 0.94,
+    );
   }
 
   @override
@@ -30,51 +36,53 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: white,
-      child: CustomScrollView(slivers: <Widget>[
-        SliverAppBar(
-          title: Text('SliverAppBar'),
-          pinned: true,
-          flexibleSpace: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  colors: [Color(0xffA61A19), Color(0xffEE2624)]),
-            ),
-          ),
-          centerTitle: true,
-        ),
-        StreamBuilder(
-          stream: cateBloc.cateStream,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return SliverList(
-                delegate: SliverChildBuilderDelegate(
-                    (BuildContext context, int index) {
-                  if (index == 0) {
-                    return banner(snapshot.data.data[index]);
-                  } else {
-                    return gridView(
-                      snapshot.data.data
-                          .getRange(1, snapshot.data.data.length)
-                          .toList(),
-                    );
-                  }
-                }, childCount: 2),
-              );
-            }
-            return SliverToBoxAdapter(
-              child: Container(
-                height: MediaQuery.of(context).size.height,
-                color: white,
-                child: new Center(
-                  child: new CircularProgressIndicator(),
-                ),
+    return Scaffold(
+      body: Container(
+        color: white,
+        child: CustomScrollView(slivers: <Widget>[
+          SliverAppBar(
+            title: Text('Tất cả danh mục'),
+            pinned: true,
+            flexibleSpace: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [Color(0xffA61A19), Color(0xffEE2624)]),
               ),
-            );
-          },
-        ),
-      ]),
+            ),
+            centerTitle: true,
+          ),
+          StreamBuilder(
+            stream: cateBloc.cateStream,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                      (BuildContext context, int index) {
+                    if (index == 0) {
+                      return banner(snapshot.data.data[index]);
+                    } else {
+                      return gridView(
+                        snapshot.data.data
+                            .getRange(1, snapshot.data.data.length)
+                            .toList(),
+                      );
+                    }
+                  }, childCount: 2),
+                );
+              }
+              return SliverToBoxAdapter(
+                child: Container(
+                  height: MediaQuery.of(context).size.height,
+                  color: white,
+                  child: new Center(
+                    child: new CircularProgressIndicator(),
+                  ),
+                ),
+              );
+            },
+          ),
+        ]),
+      ),
     );
   }
 
@@ -87,7 +95,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
             child: PageView.builder(
               itemBuilder: (context, position) {
                 return Container(
-                  margin: EdgeInsets.symmetric(horizontal: 12),
+                  margin: EdgeInsets.symmetric(horizontal: 4),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: CachedNetworkImage(
@@ -98,6 +106,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                   ),
                 );
               },
+              controller: controller,
               itemCount: baseCate.bannerList.length,
             ),
             align: IndicatorAlign.bottom,
@@ -111,21 +120,21 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   Widget gridView(List<BaseCate> data) {
     return GridView.builder(
-      padding:  EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       itemCount: data.length,
+      physics: NeverScrollableScrollPhysics(),
       gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 8.0,
-          mainAxisSpacing: 28.0,
-          childAspectRatio: (MediaQuery.of(context).size.height) * 0.00203),
+          mainAxisSpacing: 8.0,
+          childAspectRatio: (MediaQuery.of(context).size.height) * 0.00153),
       shrinkWrap: true,
-      primary: false,
       itemBuilder: (BuildContext context, int index) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Expanded(
-              flex: 1,
+            SizedBox(
+              height: 100,
               child: ClipRRect(
                 borderRadius: BorderRadius.all(Radius.circular(4)),
                 child: CachedNetworkImage(
@@ -135,7 +144,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
               ),
             ),
             Container(
-              margin: EdgeInsets.only(top: 4),
+              margin: EdgeInsets.only(top: 4, left: 8),
               child: Text(
                 data[index].title,
                 style: TextStyle(color: black, fontSize: 14.0),
