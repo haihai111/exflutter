@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/Event/CateItemEvent.dart';
+import 'package:flutter_app/State/CateItemState.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_indicator/page_indicator.dart';
 
 import 'Bloc/CateBloc.dart';
-import 'Bloc/bloc_provider.dart';
 import 'Model/BaseCate.dart';
 import 'Res/colors.dart';
 
@@ -20,7 +22,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   void initState() {
     super.initState();
     cateBloc = BlocProvider.of<CateBloc>(context);
-    cateBloc.getCate();
+    cateBloc.add(CateItemFetched());
     controller = new PageController(
       initialPage: 0,
       keepPage: false,
@@ -31,7 +33,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   void dispose() {
     super.dispose();
-    cateBloc.dispose();
   }
 
   @override
@@ -51,19 +52,18 @@ class _CategoryScreenState extends State<CategoryScreen> {
             ),
             centerTitle: true,
           ),
-          StreamBuilder(
-            stream: cateBloc.cateStream,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
+          BlocBuilder<CateBloc, CateItemState>(
+            builder: (context, state) {
+              if (state is CateItemSuccess) {
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                       (BuildContext context, int index) {
                     if (index == 0) {
-                      return banner(snapshot.data.data[index]);
+                      return banner(state.cateItem.data[index]);
                     } else {
                       return gridView(
-                        snapshot.data.data
-                            .getRange(1, snapshot.data.data.length)
+                        state.cateItem.data
+                            .getRange(1, state.cateItem.data.length)
                             .toList(),
                       );
                     }

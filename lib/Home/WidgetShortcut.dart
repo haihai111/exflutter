@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/Bloc/CateBloc.dart';
-import 'package:flutter_app/Bloc/bloc_provider.dart';
 import 'package:flutter_app/Model/WidgetHome.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../CategoryScreen.dart';
 
@@ -30,8 +30,8 @@ class _WidgetShortcutState extends State<WidgetShortcut> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => BlocProvider<CateBloc>(
-                      bloc: CateBloc(),
+                    builder: (context) => BlocProvider(
+                      create: (context) => CateBloc(),
                       child: CategoryScreen(),
                     ),
                   ),
