@@ -40,14 +40,14 @@ class _WidgetShortcutState extends State<WidgetShortcut> {
               child: Column(
                 children: <Widget>[
                   Container(
-                    margin: EdgeInsets.only(left: 16, right: 16),
+                    margin: EdgeInsets.only(left: 12, right: 12),
                     child: CachedNetworkImage(
                       fit: BoxFit.cover,
                       imageUrl: widget.widget.data.homeModelItems[index].image,
                     ),
                   ),
                   Container(
-                    margin: EdgeInsets.only(left: 16, right: 16),
+                    margin: EdgeInsets.only(left: 12, right: 12),
                     child: Text(
                       widget.widget.data.homeModelItems[index].title,
                       textAlign: TextAlign.center,

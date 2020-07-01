@@ -6,3 +6,4 @@ abstract class CateItemEvent extends Equatable {
 }
 
 class CateItemFetched extends CateItemEvent {}
+

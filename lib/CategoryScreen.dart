@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_indicator/page_indicator.dart';
 
 import 'Bloc/CateBloc.dart';
+import 'Category1Screen.dart';
 import 'Model/BaseCate.dart';
 import 'Res/colors.dart';
 
@@ -62,10 +63,10 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       return banner(state.cateItem.data[index]);
                     } else {
                       return gridView(
-                        state.cateItem.data
-                            .getRange(1, state.cateItem.data.length)
-                            .toList(),
-                      );
+                          state.cateItem.data
+                              .getRange(1, state.cateItem.data.length)
+                              .toList(),
+                          state.cateItem.data[0].bannerList);
                     }
                   }, childCount: 2),
                 );
@@ -118,7 +119,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
-  Widget gridView(List<BaseCate> data) {
+  Widget gridView(List<BaseCate> data, List<BaseCate> bannerList) {
     return GridView.builder(
       padding: EdgeInsets.all(16),
       itemCount: data.length,
@@ -127,30 +128,44 @@ class _CategoryScreenState extends State<CategoryScreen> {
           crossAxisCount: 2,
           crossAxisSpacing: 8.0,
           mainAxisSpacing: 8.0,
-          childAspectRatio: (MediaQuery.of(context).size.height) * 0.00153),
+          childAspectRatio: (MediaQuery.of(context).size.height) * 0.00148),
       shrinkWrap: true,
       itemBuilder: (BuildContext context, int index) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            SizedBox(
-              height: 100,
-              child: ClipRRect(
-                borderRadius: BorderRadius.all(Radius.circular(4)),
-                child: CachedNetworkImage(
-                  imageUrl: data[index].image,
-                  fit: BoxFit.cover,
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BlocProvider(
+                  create: (context) => CateBloc(),
+                  child: Category1Screen(
+                      cateItemLv1: data[index], bannerList: bannerList),
                 ),
               ),
-            ),
-            Container(
-              margin: EdgeInsets.only(top: 4, left: 8),
-              child: Text(
-                data[index].title,
-                style: TextStyle(color: black, fontSize: 14.0),
+            );
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              SizedBox(
+                height: 100,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                  child: CachedNetworkImage(
+                    imageUrl: data[index].image,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
-            ),
-          ],
+              Container(
+                margin: EdgeInsets.only(top: 4, left: 8),
+                child: Text(
+                  data[index].title,
+                  style: TextStyle(color: black, fontSize: 14.0),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter_app/Model/BaseCate.dart';
 import 'package:flutter_app/Model/CateItem.dart';
 
 abstract class CateItemState extends Equatable {
@@ -21,4 +22,15 @@ class CateItemSuccess extends CateItemState {
 
   @override
   List<Object> get props => [cateItem];
+}
+
+class CateItem1Success extends CateItemState {
+  final BaseCate cateItemLv1;
+
+  const CateItem1Success({
+    this.cateItemLv1,
+  });
+
+  @override
+  List<Object> get props => [cateItemLv1];
 }

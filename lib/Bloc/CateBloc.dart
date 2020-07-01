@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_app/Event/CateItemEvent.dart';
+import 'package:flutter_app/Model/BaseCate.dart';
 import 'package:flutter_app/Model/CateItem.dart';
 import 'package:flutter_app/State/CateItemState.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -18,9 +19,9 @@ class CateBloc extends Bloc<CateItemEvent, CateItemState> {
 
   @override
   Stream<Transition<CateItemEvent, CateItemState>> transformEvents(
-      Stream<CateItemEvent> events,
-      TransitionFunction<CateItemEvent, CateItemState> transitionFn,
-      ) {
+    Stream<CateItemEvent> events,
+    TransitionFunction<CateItemEvent, CateItemState> transitionFn,
+  ) {
     return super.transformEvents(
       events.debounceTime(const Duration(milliseconds: 500)),
       transitionFn,
