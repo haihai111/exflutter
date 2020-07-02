@@ -139,7 +139,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                 builder: (context) => BlocProvider(
                   create: (context) => CateBloc(),
                   child: Category1Screen(
-                      cateItemLv1: data[index], bannerList: bannerList),
+                      cateItem: data, bannerList: bannerList,index: index,),
                 ),
               ),
             );
