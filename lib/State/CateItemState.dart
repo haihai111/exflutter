@@ -26,9 +26,11 @@ class CateItemSuccess extends CateItemState {
 
 class CateItem1Success extends CateItemState {
   final BaseCate cateItemLv1;
+  final List<BaseCate> allCate;
 
   const CateItem1Success({
     this.cateItemLv1,
+    this.allCate,
   });
 
   @override

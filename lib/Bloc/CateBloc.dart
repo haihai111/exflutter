@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter_app/Event/CateItemEvent.dart';
 import 'package:flutter_app/Model/BaseCate.dart';
@@ -11,6 +12,11 @@ import 'CateRepository.dart';
 
 class CateBloc extends Bloc<CateItemEvent, CateItemState> {
   final _cateRepository = CateRepository();
+  List<BaseCate> cateItem1;
+
+  CateBloc({
+    this.cateItem1,
+  });
 
   Future<CateItem> getCate() async {
     CateItem cateItem = await _cateRepository.getCategory();
@@ -44,6 +50,13 @@ class CateBloc extends Bloc<CateItemEvent, CateItemState> {
       } catch (_) {
         yield CateItemFailure();
       }
+    } else if (event is CateItemChange) {
+      var cateItemLv1 = cateItem1[event.index];
+      List<BaseCate> allCate = [];
+      cateItem1.forEach((cate) => {allCate.add(cate)});
+      cateItem1.asMap().forEach((index, cate) =>
+          {cate.isSelected = index == event.index, allCate.add(cate)});
+      yield CateItem1Success(cateItemLv1: cateItemLv1, allCate: allCate);
     }
   }
 }

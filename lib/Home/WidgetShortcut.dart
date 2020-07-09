@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/Bloc/CateBloc.dart';
 import 'package:flutter_app/Model/WidgetHome.dart';
+import 'package:flutter_app/Res/SlideRightRoute.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../CategoryScreen.dart';
@@ -29,7 +30,7 @@ class _WidgetShortcutState extends State<WidgetShortcut> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  MyCustomRoute(
                     builder: (context) => BlocProvider(
                       create: (context) => CateBloc(),
                       child: CategoryScreen(),

@@ -8,6 +8,7 @@ import 'package:page_indicator/page_indicator.dart';
 import 'Bloc/CateBloc.dart';
 import 'Category1Screen.dart';
 import 'Model/BaseCate.dart';
+import 'Res/SlideRightRoute.dart';
 import 'Res/colors.dart';
 
 class CategoryScreen extends StatefulWidget {
@@ -135,11 +136,11 @@ class _CategoryScreenState extends State<CategoryScreen> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => BlocProvider(
-                  create: (context) => CateBloc(),
-                  child: Category1Screen(
-                      cateItem: data, bannerList: bannerList,index: index,),
+              MyCustomRoute(
+                builder: (context) => Category1Screen(
+                  cateItem: data,
+                  bannerList: bannerList,
+                  index: index,
                 ),
               ),
             );

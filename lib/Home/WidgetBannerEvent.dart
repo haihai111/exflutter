@@ -9,12 +9,9 @@ class WidgetBannetEvent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: widget.data.homeModelItems[0].ratioImage,
-      child: CachedNetworkImage(
-        fit: BoxFit.cover,
-        imageUrl: widget.data.homeModelItems[0].image,
-      ),
+    return CachedNetworkImage(
+      fit: BoxFit.cover,
+      imageUrl: widget.data.homeModelItems[0].image,
     );
   }
 }
