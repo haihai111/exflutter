@@ -50,7 +50,7 @@ class _Category1ScreenState extends State<Category1Screen>
     controller = new AnimationController(
         duration: Duration(milliseconds: 200), vsync: this)
       ..addListener(() => {});
-    offset = Tween(begin: 116.0, end: 0.0).animate(controller);
+    offset = Tween(begin: 0.0, end: 116.0).animate(controller);
 
     scrollController.addListener(() {
       if (scrollController.position.userScrollDirection ==
@@ -88,79 +88,127 @@ class _Category1ScreenState extends State<Category1Screen>
           ChangeNotifierProvider<AllCateItemModel>(
               create: (context) => AllCateItemModel(allCate: allCate)),
           ChangeNotifierProvider<CateItemModel>(
-              create: (context) => CateItemModel(cateItemLv1: cateItemLv1))
+              create: (context) => CateItemModel(cateItemLv1: cateItemLv1)),
+          ChangeNotifierProvider<CateGuidance>(
+              create: (context) => CateGuidance())
         ],
         child: Stack(
           children: <Widget>[
             Consumer<CateItemModel>(builder: (context, myModel, child) {
-              return CustomScrollView(
-                controller: scrollController,
-                slivers: <Widget>[
-                  SliverAppBar(
-                    title: Text(
-                      myModel.cateItemLv1.title,
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    pinned: true,
-                    flexibleSpace: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                            colors: [Color(0xffA61A19), Color(0xffEE2624)]),
+              return NotificationListener<ScrollNotification>(
+                onNotification: (scrollNotification) {
+                  if (scrollNotification is ScrollStartNotification) {
+                    Provider.of<CateGuidance>(context, listen: false)
+                        .changeIsGuidance(false);
+                  }
+                  return true;
+                },
+                child: CustomScrollView(
+                  controller: scrollController,
+                  slivers: <Widget>[
+                    SliverAppBar(
+                      title: Text(
+                        myModel.cateItemLv1.title,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
                       ),
-                    ),
-                    centerTitle: true,
-                    actions: <Widget>[
-                      Align(
-                        alignment: Alignment.center,
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 16.0),
-                          child: Text(
-                            "Tất cả",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 14),
-                          ),
+                      pinned: true,
+                      flexibleSpace: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                              colors: [Color(0xffA61A19), Color(0xffEE2624)]),
                         ),
-                      )
-                    ],
-                  ),
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                        (BuildContext context, int index) {
-                      if (index == 0) {
-                        return banner(widget.bannerList);
-                      } else {
-                        return gridView(
-                            myModel.cateItemLv1.child[index - 1].title,
-                            myModel.cateItemLv1.child[index - 1]);
-                      }
-                    }, childCount: myModel.cateItemLv1.child.length + 1),
-                  ),
-                ],
+                      ),
+                      centerTitle: true,
+                      actions: <Widget>[
+                        Align(
+                          alignment: Alignment.center,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 16.0),
+                            child: Text(
+                              "Tất cả",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                          (BuildContext context, int index) {
+                        if (index == 0) {
+                          return banner(widget.bannerList);
+                        } else if (index ==
+                            myModel.cateItemLv1.child.length + 1) {
+                          return Container(height: 60);
+                        } else {
+                          return gridView(
+                              myModel.cateItemLv1.child[index - 1].title,
+                              myModel.cateItemLv1.child[index - 1]);
+                        }
+                      }, childCount: myModel.cateItemLv1.child.length + 2),
+                    ),
+                  ],
+                ),
               );
             }),
-            allCateWidget(),
             Align(
-              alignment: Alignment.topRight,
-              child: Container(
-                padding: EdgeInsets.all(8),
-                margin: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top + heightNavigation - 8,
-                    right: 6),
-                decoration: BoxDecoration(
-                    color: gray900,
-                    border: Border.all(color: gray900, width: 1),
-                    borderRadius: BorderRadius.all(Radius.circular(8))),
-                child: Text(
-                  "Bấm để xem tất cả sản phẩm \ncủa danh mục này.",
-                  style: TextStyle(color: white),
-                ),
+              alignment: Alignment.bottomCenter,
+              child: Image.asset(
+                "assets/icons/guide_background.png",
+                fit: BoxFit.fill,
+                height: MediaQuery.of(context).size.height * 0.75,
               ),
-            )
+            ),
+            guidanceAllCate(),
+            allCateWidget(),
           ],
         ),
       ),
     );
+  }
+
+  Widget guidanceAllCate() {
+    return Consumer<CateGuidance>(builder: (context, myModel, child) {
+      return AnimatedOpacity(
+        opacity: myModel.isGuidance ? 1 : 0,
+        duration: Duration(seconds: 1),
+        child: Padding(
+          padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + heightNavigation - 16,
+              right: 6),
+          child: Column(
+            children: <Widget>[
+              Align(
+                alignment: Alignment.topRight,
+                child: Container(
+                  margin: EdgeInsets.only(right: 16),
+                  child: CustomPaint(
+                    size: Size(24, 10),
+                    painter: DrawTriangle(),
+                  ),
+                ),
+              ),
+              Align(
+                alignment: Alignment.topRight,
+                child: Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                      color: gray900,
+                      border: Border.all(color: gray900, width: 1),
+                      borderRadius: BorderRadius.all(Radius.circular(8))),
+                  child: Text(
+                    "Bấm để xem tất cả sản phẩm \ncủa danh mục này.",
+                    style: TextStyle(color: white, fontSize: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 
   Widget allCateWidget() {
@@ -383,5 +431,30 @@ class _Category1ScreenState extends State<Category1Screen>
         ],
       ),
     );
+  }
+}
+
+class DrawTriangle extends CustomPainter {
+  Paint _paint;
+
+  DrawTriangle() {
+    _paint = Paint()
+      ..color = gray900
+      ..style = PaintingStyle.fill;
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    var path = Path();
+    path.moveTo(size.width / 2, 0);
+    path.lineTo(0, size.height);
+    path.lineTo(size.width, size.height);
+    path.close();
+    canvas.drawPath(path, _paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
   }
 }

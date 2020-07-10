@@ -25,3 +25,12 @@ class CateItemModel with ChangeNotifier {
     notifyListeners();
   }
 }
+
+class CateGuidance with ChangeNotifier {
+  bool isGuidance = true;
+
+  void changeIsGuidance(bool isGuidance) {
+    this.isGuidance = isGuidance;
+    notifyListeners();
+  }
+}
