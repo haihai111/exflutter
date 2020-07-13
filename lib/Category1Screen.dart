@@ -7,6 +7,7 @@ import 'package:flutter_app/Res/dimen.dart';
 import 'package:flutter_app/State/CateItemState.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:page_indicator/page_indicator.dart';
+import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'Model/CateItemModel.dart';
 import 'Bloc/CateBloc.dart';
@@ -25,12 +26,16 @@ class Category1Screen extends StatefulWidget {
 }
 
 class _Category1ScreenState extends State<Category1Screen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   BaseCate cateItemLv1;
   PageController pageController;
   List<BaseCate> allCate = [];
   AnimationController controller;
+  AnimationController allController;
+  AnimationController bgController;
   Animation<double> offset;
+  Animation<double> allOffset;
+  Animation<double> bgOffset;
   ScrollController scrollController = ScrollController();
   ScrollController scrollControllerHoz = ScrollController();
   ScrollDirection scrollDirection = ScrollDirection.reverse;
@@ -52,17 +57,31 @@ class _Category1ScreenState extends State<Category1Screen>
       ..addListener(() => {});
     offset = Tween(begin: 0.0, end: 116.0).animate(controller);
 
+    allController = new AnimationController(
+        duration: Duration(milliseconds: 100), vsync: this)
+      ..addListener(() => {});
+    allOffset = Tween(begin: 1.0, end: 0.0).animate(allController);
+
+    bgController = new AnimationController(
+        duration: Duration(milliseconds: 1500), vsync: this)
+      ..addListener(() => {});
+    bgOffset = Tween(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: bgController, curve: Curves.elasticOut));
+
     scrollController.addListener(() {
       if (scrollController.position.userScrollDirection ==
               ScrollDirection.reverse &&
           scrollDirection == ScrollDirection.reverse) {
         scrollDirection = ScrollDirection.forward;
         controller.forward();
+        allController.forward();
       } else if (scrollController.position.userScrollDirection ==
               ScrollDirection.forward &&
           scrollDirection == ScrollDirection.forward) {
         scrollDirection = ScrollDirection.reverse;
         controller.reverse();
+        allController.forward();
+        bgController.forward();
       }
     });
     scrollAllCate();
@@ -94,16 +113,9 @@ class _Category1ScreenState extends State<Category1Screen>
         ],
         child: Stack(
           children: <Widget>[
-            Consumer<CateItemModel>(builder: (context, myModel, child) {
-              return NotificationListener<ScrollNotification>(
-                onNotification: (scrollNotification) {
-                  if (scrollNotification is ScrollStartNotification) {
-                    Provider.of<CateGuidance>(context, listen: false)
-                        .changeIsGuidance(false);
-                  }
-                  return true;
-                },
-                child: CustomScrollView(
+            Consumer<CateItemModel>(
+              builder: (context, myModel, child) {
+                return CustomScrollView(
                   controller: scrollController,
                   slivers: <Widget>[
                     SliverAppBar(
@@ -145,22 +157,16 @@ class _Category1ScreenState extends State<Category1Screen>
                         } else {
                           return gridView(
                               myModel.cateItemLv1.child[index - 1].title,
-                              myModel.cateItemLv1.child[index - 1]);
+                              myModel.cateItemLv1.child[index - 1],
+                              context);
                         }
                       }, childCount: myModel.cateItemLv1.child.length + 2),
                     ),
                   ],
-                ),
-              );
-            }),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Image.asset(
-                "assets/icons/guide_background.png",
-                fit: BoxFit.fill,
-                height: MediaQuery.of(context).size.height * 0.75,
-              ),
+                );
+              },
             ),
+            guidanceBg(context),
             guidanceAllCate(),
             allCateWidget(),
           ],
@@ -169,46 +175,72 @@ class _Category1ScreenState extends State<Category1Screen>
     );
   }
 
+  Widget guidanceBg(BuildContext context) {
+    return Positioned(
+      bottom: -(MediaQuery.of(context).size.height * 0.5),
+      right: -160,
+      child: AnimatedBuilder(
+        animation: bgController,
+        builder: (BuildContext context, Widget child) {
+          return Transform.scale(
+            scale: bgOffset.value,
+            child: Container(
+              width: MediaQuery.of(context).size.height * (1.2),
+              height: MediaQuery.of(context).size.height * (1.2),
+              decoration: new BoxDecoration(
+                color: gray900,
+                shape: BoxShape.circle,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Widget guidanceAllCate() {
-    return Consumer<CateGuidance>(builder: (context, myModel, child) {
-      return AnimatedOpacity(
-        opacity: myModel.isGuidance ? 1 : 0,
-        duration: Duration(seconds: 1),
-        child: Padding(
-          padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + heightNavigation - 16,
-              right: 6),
-          child: Column(
-            children: <Widget>[
-              Align(
-                alignment: Alignment.topRight,
-                child: Container(
-                  margin: EdgeInsets.only(right: 16),
-                  child: CustomPaint(
-                    size: Size(24, 10),
-                    painter: DrawTriangle(),
+    return AnimatedBuilder(
+      animation: allController,
+      builder: (BuildContext context, Widget child) {
+        return AnimatedOpacity(
+          opacity: allOffset.value,
+          duration: Duration(seconds: 1),
+          child: Padding(
+            padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + heightNavigation - 16,
+                right: 6),
+            child: Column(
+              children: <Widget>[
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Container(
+                    margin: EdgeInsets.only(right: 16),
+                    child: CustomPaint(
+                      size: Size(24, 10),
+                      painter: DrawTriangle(),
+                    ),
                   ),
                 ),
-              ),
-              Align(
-                alignment: Alignment.topRight,
-                child: Container(
-                  padding: EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                      color: gray900,
-                      border: Border.all(color: gray900, width: 1),
-                      borderRadius: BorderRadius.all(Radius.circular(8))),
-                  child: Text(
-                    "Bấm để xem tất cả sản phẩm \ncủa danh mục này.",
-                    style: TextStyle(color: white, fontSize: 12),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        color: gray900,
+                        border: Border.all(color: gray900, width: 1),
+                        borderRadius: BorderRadius.all(Radius.circular(8))),
+                    child: Text(
+                      "Bấm để xem tất cả sản phẩm \ncủa danh mục này.",
+                      style: TextStyle(color: white, fontSize: 12),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 
   Widget allCateWidget() {
@@ -356,7 +388,7 @@ class _Category1ScreenState extends State<Category1Screen>
     );
   }
 
-  Widget gridView(String title, BaseCate data) {
+  Widget gridView(String title, BaseCate data, BuildContext context) {
     return Container(
       color: white,
       child: Column(
@@ -451,6 +483,29 @@ class DrawTriangle extends CustomPainter {
     path.lineTo(size.width, size.height);
     path.close();
     canvas.drawPath(path, _paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
+  }
+}
+
+class DrawCircle extends CustomPainter {
+  Paint _paint;
+  var widthScreen;
+
+  DrawCircle(widthScreen) {
+    this.widthScreen = widthScreen;
+    _paint = Paint()
+      ..color = gray900
+      ..strokeWidth = 1
+      ..style = PaintingStyle.fill;
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawCircle(Offset(0, widthScreen * 2), 300.0, _paint);
   }
 
   @override
