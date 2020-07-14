@@ -13,6 +13,7 @@ import 'Model/CateItemModel.dart';
 import 'Bloc/CateBloc.dart';
 import 'Model/BaseCate.dart';
 import 'Res/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Category1Screen extends StatefulWidget {
   final List<BaseCate> cateItem;
@@ -39,6 +40,11 @@ class _Category1ScreenState extends State<Category1Screen>
   ScrollController scrollController = ScrollController();
   ScrollController scrollControllerHoz = ScrollController();
   ScrollDirection scrollDirection = ScrollDirection.reverse;
+  bool isFirstBgCate = false;
+  Future<bool> isFirstTextCate;
+  bool _isFirstTextCate = false;
+
+  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   @override
   void initState() {
@@ -52,6 +58,10 @@ class _Category1ScreenState extends State<Category1Screen>
       viewportFraction: 0.94,
     );
 
+    isFirstTextCate = _prefs.then((SharedPreferences prefs) {
+      return (prefs.getBool('isFirstTextCate') ?? true);
+    });
+
     controller = new AnimationController(
         duration: Duration(milliseconds: 200), vsync: this)
       ..addListener(() => {});
@@ -63,25 +73,38 @@ class _Category1ScreenState extends State<Category1Screen>
     allOffset = Tween(begin: 1.0, end: 0.0).animate(allController);
 
     bgController = new AnimationController(
-        duration: Duration(milliseconds: 1500), vsync: this)
+        duration: Duration(milliseconds: 500), vsync: this)
       ..addListener(() => {});
     bgOffset = Tween(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: bgController, curve: Curves.elasticOut));
+        CurvedAnimation(parent: bgController, curve: Curves.easeInOutBack));
 
-    scrollController.addListener(() {
+    scrollController.addListener(() async {
       if (scrollController.position.userScrollDirection ==
               ScrollDirection.reverse &&
           scrollDirection == ScrollDirection.reverse) {
         scrollDirection = ScrollDirection.forward;
         controller.forward();
-        allController.forward();
+        if (_isFirstTextCate == false) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          _isFirstTextCate = prefs.getBool("isFirstTextCate") ?? true;
+          if (_isFirstTextCate == true) {
+            allController.forward();
+            prefs.setBool("isFirstTextCate", false);
+          }
+        }
       } else if (scrollController.position.userScrollDirection ==
               ScrollDirection.forward &&
           scrollDirection == ScrollDirection.forward) {
         scrollDirection = ScrollDirection.reverse;
         controller.reverse();
-        allController.forward();
-        bgController.forward();
+        if (isFirstBgCate == false) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          isFirstBgCate = prefs.getBool("isFirstBgCate") ?? true;
+          if (isFirstBgCate == true) {
+            prefs.setBool("isFirstBgCate", false);
+            bgController.forward();
+          }
+        }
       }
     });
     scrollAllCate();
@@ -166,12 +189,68 @@ class _Category1ScreenState extends State<Category1Screen>
                 );
               },
             ),
-            guidanceBg(context),
-            guidanceAllCate(),
+            guidanceAllCate(context),
+            guidanceTextAllCate(),
             allCateWidget(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget guidanceAllCate(BuildContext context) {
+    print(bgOffset.value);
+    return Stack(
+      children: <Widget>[
+        AnimatedBuilder(
+          animation: bgController,
+          builder: (BuildContext context, Widget child) {
+            return bgOffset.value >= 1
+                ? InkWell(
+                    onTap: () {
+                      bgController.reverse();
+                    },
+                    child: Container(
+                      decoration: new BoxDecoration(
+                        color: gray900.withOpacity(0.5),
+                      ),
+                    ),
+                  )
+                : Container();
+          },
+        ),
+        guidanceBg(context),
+        AnimatedBuilder(
+          animation: bgController,
+          builder: (BuildContext context, Widget child) {
+            return bgOffset.value >= 1
+                ? Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 200,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            "Xem các danh mục khác",
+                            style: TextStyle(color: white, fontSize: 16),
+                          ),
+                        ),
+                        Container(
+                          child: Text(
+                            "Cuộn ngang và bấm vào ảnh để xem danh mục bạn muốn.",
+                            style: TextStyle(color: white, fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : Container();
+          },
+        ),
+      ],
     );
   }
 
@@ -182,61 +261,73 @@ class _Category1ScreenState extends State<Category1Screen>
       child: AnimatedBuilder(
         animation: bgController,
         builder: (BuildContext context, Widget child) {
-          return Transform.scale(
-            scale: bgOffset.value,
-            child: Container(
-              width: MediaQuery.of(context).size.height * (1.2),
-              height: MediaQuery.of(context).size.height * (1.2),
-              decoration: new BoxDecoration(
-                color: gray900,
-                shape: BoxShape.circle,
-              ),
-            ),
-          );
+          return isFirstBgCate == false
+              ? Container()
+              : Transform.scale(
+                  scale: bgOffset.value,
+                  child: Container(
+                    width: MediaQuery.of(context).size.height * (1.2),
+                    height: MediaQuery.of(context).size.height * (1.2),
+                    decoration: new BoxDecoration(
+                      color: gray800,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                );
         },
       ),
     );
   }
 
-  Widget guidanceAllCate() {
+  Widget guidanceTextAllCate() {
     return AnimatedBuilder(
       animation: allController,
       builder: (BuildContext context, Widget child) {
         return AnimatedOpacity(
           opacity: allOffset.value,
           duration: Duration(seconds: 1),
-          child: Padding(
-            padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + heightNavigation - 16,
-                right: 6),
-            child: Column(
-              children: <Widget>[
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Container(
-                    margin: EdgeInsets.only(right: 16),
-                    child: CustomPaint(
-                      size: Size(24, 10),
-                      painter: DrawTriangle(),
-                    ),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                        color: gray900,
-                        border: Border.all(color: gray900, width: 1),
-                        borderRadius: BorderRadius.all(Radius.circular(8))),
-                    child: Text(
-                      "Bấm để xem tất cả sản phẩm \ncủa danh mục này.",
-                      style: TextStyle(color: white, fontSize: 12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          child: FutureBuilder<bool>(
+            future: isFirstTextCate,
+            builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+              return snapshot.data == false
+                  ? Container()
+                  : Padding(
+                      padding: EdgeInsets.only(
+                          top: MediaQuery.of(context).padding.top +
+                              heightNavigation -
+                              16,
+                          right: 6),
+                      child: Column(
+                        children: <Widget>[
+                          Align(
+                            alignment: Alignment.topRight,
+                            child: Container(
+                              margin: EdgeInsets.only(right: 16),
+                              child: CustomPaint(
+                                size: Size(24, 10),
+                                painter: DrawTriangle(),
+                              ),
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.topRight,
+                            child: Container(
+                              padding: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                  color: gray900,
+                                  border: Border.all(color: gray900, width: 1),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(8))),
+                              child: Text(
+                                "Bấm để xem tất cả sản phẩm \ncủa danh mục này.",
+                                style: TextStyle(color: white, fontSize: 12),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+            },
           ),
         );
       },
@@ -255,12 +346,18 @@ class _Category1ScreenState extends State<Category1Screen>
                 offset: Offset(0.0, offset.value),
                 child: Container(
                   height: 176,
-                  decoration: BoxDecoration(boxShadow: <BoxShadow>[
-                    BoxShadow(
-                        color: Colors.black38,
-                        blurRadius: 10.0,
-                        offset: Offset(0.0, 0.75))
-                  ], color: white),
+                  decoration: BoxDecoration(
+                      boxShadow: <BoxShadow>[
+                        BoxShadow(
+                            color: Colors.black38,
+                            blurRadius: 10.0,
+                            offset: Offset(0.0, 0.75)),
+                      ],
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
+                      ),
+                      color: white),
                   child: Column(
                     children: <Widget>[
                       InkWell(
@@ -325,6 +422,23 @@ class _Category1ScreenState extends State<Category1Screen>
                                         imageUrl: myModel.allCate[index].image,
                                         errorWidget: (context, url, error) =>
                                             Icon(Icons.error),
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    left: 12,
+                                    right: 8,
+                                    bottom: 24,
+                                    child: Container(
+                                      width: 100,
+                                      child: Text(
+                                        myModel.allCate[index].title,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            color: white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                   ),
